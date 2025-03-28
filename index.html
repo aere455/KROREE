@@ -1,0 +1,2399 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حاسبة العمر الاحترافية</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-hijri/2.1.2/moment-hijri.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #4a6fa5;
+            --secondary-color: #ff6b6b;
+            --accent-color: #ffd166;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --success-color: #06d6a0;
+            --warning-color: #ffc107;
+            --info-color: #3498db;
+            --gradient-primary: linear-gradient(135deg, #4a6fa5, #334a6d);
+            --gradient-secondary: linear-gradient(135deg, #ff6b6b, #c74b4b);
+            --shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            --border-radius: 8px;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Tajawal', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        .header h1 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .header p {
+            color: var(--dark-color);
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+
+        .theme-switcher {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: var(--gradient-primary);
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: bold;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .theme-switcher:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .main-card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .tab-navigation {
+            display: flex;
+            background-color: var(--primary-color);
+            padding: 0 10px;
+        }
+
+        .tab-button {
+            padding: 15px 20px;
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .tab-button:hover {
+            color: white;
+        }
+
+        .tab-button.active {
+            color: white;
+        }
+
+        .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: var(--accent-color);
+        }
+
+        .tab-content {
+            padding: 30px;
+        }
+
+        .birth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-group label {
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .input-group input, .input-group select {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            transition: var(--transition);
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.2);
+            outline: none;
+        }
+
+        .calendar-select {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .calendar-option {
+            flex: 1;
+            padding: 12px;
+            background-color: #f1f5f9;
+            border-radius: var(--border-radius);
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 2px solid transparent;
+        }
+
+        .calendar-option:hover {
+            background-color: #e2e8f0;
+        }
+
+        .calendar-option.active {
+            border-color: var(--primary-color);
+            background-color: rgba(74, 111, 165, 0.1);
+            font-weight: bold;
+        }
+
+        .btn {
+            padding: 14px 25px;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: center;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--gradient-secondary);
+            color: white;
+        }
+
+        .btn-primary:hover, .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            justify-content: flex-end;
+        }
+
+        .results-container {
+            margin-top: 30px;
+        }
+
+        .results-card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 25px;
+            margin-bottom: 20px;
+            transition: var(--transition);
+            border-right: 4px solid var(--primary-color);
+        }
+
+        .results-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .results-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .result-item {
+            background-color: #f8fafc;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+        }
+
+        .result-item:hover {
+            background-color: #eef2f7;
+        }
+
+        .result-item .label {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 5px;
+        }
+
+        .result-item .value {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--dark-color);
+        }
+
+        .unit {
+            font-size: 14px;
+            color: #64748b;
+            font-weight: normal;
+        }
+
+        .chart-container {
+            height: 300px;
+            margin-top: 30px;
+            position: relative;
+        }
+
+        .milestones-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .milestone-card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 20px;
+            border-right: 4px solid transparent;
+            transition: var(--transition);
+        }
+
+        .milestone-card.past {
+            border-right-color: var(--success-color);
+        }
+
+        .milestone-card.future {
+            border-right-color: var(--info-color);
+        }
+
+        .milestone-card h4 {
+            color: var(--dark-color);
+            margin-bottom: 10px;
+        }
+
+        .milestone-card .date {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .milestone-card .countdown {
+            font-weight: 700;
+            color: var(--primary-color);
+            font-size: 18px;
+        }
+
+        .famous-people {
+            margin-top: 30px;
+        }
+
+        .person-card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: var(--transition);
+        }
+
+        .person-card:hover {
+            transform: translateX(-5px);
+        }
+
+        .person-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 24px;
+        }
+
+        .person-info h4 {
+            margin-bottom: 5px;
+        }
+
+        .person-info p {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .comparison-form {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f8fafc;
+            border-radius: var(--border-radius);
+        }
+
+        .comparison-results {
+            margin-top: 20px;
+            display: flex;
+            gap: 20px;
+        }
+
+        .comparison-column {
+            flex: 1;
+            background-color: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+
+        .comparison-column h4 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .print-section {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .print-button {
+            background: var(--dark-color);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0 auto;
+            transition: var(--transition);
+        }
+
+        .print-button:hover {
+            background-color: #1a252f;
+        }
+
+        .zodiac-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+            background-color: #f8fafc;
+            border-radius: var(--border-radius);
+            margin-top: 20px;
+            transition: var(--transition);
+        }
+
+        .zodiac-info:hover {
+            background-color: #eef2f7;
+        }
+
+        .zodiac-icon {
+            width: 60px;
+            height: 60px;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+
+        .zodiac-details h4 {
+            margin-bottom: 5px;
+            color: var(--dark-color);
+        }
+
+        .zodiac-details p {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .fun-facts {
+            margin-top: 30px;
+        }
+
+        .fun-fact-card {
+            background-color: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 15px;
+            transition: var(--transition);
+            border-right: 4px solid var(--accent-color);
+        }
+
+        .fun-fact-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .fun-fact-card h4 {
+            color: var(--dark-color);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .fun-fact-card p {
+            color: #64748b;
+            line-height: 1.6;
+        }
+
+        .loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100px;
+        }
+
+        .loader-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(74, 111, 165, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .share-section {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .share-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .share-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .share-button:hover {
+            transform: translateY(-3px);
+        }
+
+        .share-facebook {
+            background-color: #3b5998;
+        }
+
+        .share-twitter {
+            background-color: #1da1f2;
+        }
+
+        .share-whatsapp {
+            background-color: #25d366;
+        }
+
+        .profile-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 30px;
+            font-weight: 700;
+        }
+
+        .profile-info h3 {
+            margin-bottom: 5px;
+            color: var(--dark-color);
+        }
+
+        .profile-info p {
+            color: #64748b;
+        }
+
+        .notifications {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
+
+        .notification {
+            background-color: white;
+            padding: 15px 20px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideIn 0.3s forwards;
+            max-width: 350px;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .notification-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+        }
+
+        .notification.success .notification-icon {
+            background-color: var(--success-color);
+        }
+
+        .notification.warning .notification-icon {
+            background-color: var(--warning-color);
+        }
+
+        .notification.info .notification-icon {
+            background-color: var(--info-color);
+        }
+
+        .notification-content h4 {
+            margin-bottom: 3px;
+            font-size: 16px;
+        }
+
+        .notification-content p {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .close-notification {
+            margin-right: auto;
+            background: none;
+            border: none;
+            color: #64748b;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .close-notification:hover {
+            color: var(--dark-color);
+        }
+
+        .timeline {
+            margin-top: 30px;
+            position: relative;
+            padding-right: 30px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            right: 10px;
+            width: 2px;
+            background-color: var(--primary-color);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 25px;
+            padding-bottom: 25px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: -30px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: white;
+            border: 3px solid var(--primary-color);
+            z-index: 1;
+        }
+
+        .timeline-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+
+        .timeline-content h4 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .timeline-date {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .settings-section {
+            margin-top: 30px;
+        }
+
+        .settings-card {
+            background-color: white;
+            padding: 25px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+        }
+
+        .settings-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .settings-group {
+            margin-bottom: 20px;
+        }
+
+        .settings-group h4 {
+            margin-bottom: 10px;
+            color: var(--dark-color);
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: var(--transition);
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: var(--transition);
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary-color);
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px var(--primary-color);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .color-options {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 2px solid transparent;
+        }
+
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+
+        .color-option.active {
+            border-color: var(--dark-color);
+        }
+
+        .language-selector {
+            margin-top: 10px;
+        }
+
+        .language-option {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            background-color: #f1f5f9;
+            border-radius: 20px;
+            margin-right: 10px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .language-option:hover {
+            background-color: #e2e8f0;
+        }
+
+        .language-option.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .heart-icon {
+            color: var(--secondary-color);
+        }
+
+        /* Dark Theme */
+        .dark-theme {
+            background-color: #1a202c;
+            color: #e2e8f0;
+        }
+
+        .dark-theme .main-card,
+        .dark-theme .results-card,
+        .dark-theme .milestone-card,
+        .dark-theme .person-card,
+        .dark-theme .comparison-column,
+        .dark-theme .fun-fact-card,
+        .dark-theme .profile-section,
+        .dark-theme .notification,
+        .dark-theme .timeline-content,
+        .dark-theme .settings-card {
+            background-color: #2d3748;
+            color: #e2e8f0;
+        }
+
+        .dark-theme .header h1 {
+            color: #63b3ed;
+        }
+
+        .dark-theme .result-item {
+            background-color: #4a5568;
+        }
+
+        .dark-theme .result-item:hover {
+            background-color: #2d3748;
+        }
+
+        .dark-theme .result-item .label,
+        .dark-theme .unit,
+        .dark-theme .person-info p,
+        .dark-theme .zodiac-details p,
+        .dark-theme .fun-fact-card p,
+        .dark-theme .profile-info p,
+        .dark-theme .notification-content p,
+        .dark-theme .timeline-date {
+            color: #a0aec0;
+        }
+
+        .dark-theme .result-item .value,
+        .dark-theme .milestone-card h4,
+        .dark-theme .person-info h4,
+        .dark-theme .zodiac-details h4,
+        .dark-theme .fun-fact-card h4,
+        .dark-theme .profile-info h3,
+        .dark-theme .notification-content h4,
+        .dark-theme .timeline-content h4,
+        .dark-theme .settings-card h3,
+        .dark-theme .settings-group h4 {
+            color: #e2e8f0;
+        }
+
+        .dark-theme .input-group label {
+            color: #e2e8f0;
+        }
+
+        .dark-theme .input-group input,
+        .dark-theme .input-group select {
+            background-color: #4a5568;
+            border-color: #2d3748;
+            color: #e2e8f0;
+        }
+
+        .dark-theme .calendar-option {
+            background-color: #4a5568;
+            color: #e2e8f0;
+        }
+
+        .dark-theme .calendar-option:hover {
+            background-color: #2d3748;
+        }
+
+        .dark-theme .calendar-option.active {
+            background-color: rgba(99, 179, 237, 0.2);
+            border-color: #63b3ed;
+        }
+
+        .dark-theme .comparison-form,
+        .dark-theme .zodiac-info {
+            background-color: #4a5568;
+        }
+
+        .dark-theme .comparison-form:hover,
+        .dark-theme .zodiac-info:hover {
+            background-color: #2d3748;
+        }
+
+        .dark-theme .language-option {
+            background-color: #4a5568;
+            color: #e2e8f0;
+        }
+
+        .dark-theme .language-option:hover {
+            background-color: #2d3748;
+        }
+
+        .dark-theme .language-option.active {
+            background-color: #63b3ed;
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            .results-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+
+            .milestones-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .comparison-results {
+                flex-direction: column;
+            }
+
+            .tab-navigation {
+                flex-wrap: wrap;
+            }
+
+            .tab-button {
+                padding: 10px 15px;
+                font-size: 14px;
+            }
+
+            .profile-section {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .theme-switcher {
+                position: relative;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // الكومبوننت الرئيسي للتطبيق
+        const AgeCalculator = () => {
+            // حالات (State) المكونات
+            const [activeTab, setActiveTab] = useState('calculator');
+            const [theme, setTheme] = useState('light');
+            const [calendarType, setCalendarType] = useState('gregorian');
+            const [birthDate, setBirthDate] = useState('');
+            const [birthTime, setBirthTime] = useState('');
+            const [name, setName] = useState('');
+            const [gender, setGender] = useState('male');
+            const [notifications, setNotifications] = useState([]);
+            const [ageResults, setAgeResults] = useState(null);
+            const [loading, setLoading] = useState(false);
+            const [displayMode, setDisplayMode] = useState('detailed');
+            const [accentColor, setAccentColor] = useState('#4a6fa5');
+            const [language, setLanguage] = useState('ar');
+            const [compareBirthDate, setCompareBirthDate] = useState('');
+            const [compareResults, setCompareResults] = useState(null);
+            const [famousPeople, setFamousPeople] = useState([]);
+            const [lifeEvents, setLifeEvents] = useState([]);
+            const [zodiacSign, setZodiacSign] = useState(null);
+            const [settings, setSettings] = useState({
+                notifications: true,
+                darkMode: false,
+                autoSave: true,
+                comparisonFeature: true,
+                timelineFeature: true,
+                birthdayReminder: true,
+                colorTheme: 'blue',
+                language: 'ar',
+                dateFormat: 'DD/MM/YYYY',
+                shareFeature: true
+            });
+
+            const timelineRef = useRef(null);
+            const ageChartRef = useRef(null);
+            const timeChartRef = useRef(null);
+            const ageChartInstance = useRef(null);
+            const timeChartInstance = useRef(null);
+
+            // تغيير السمة (Theme)
+            useEffect(() => {
+                document.body.className = theme === 'dark' ? 'dark-theme' : '';
+            }, [theme]);
+
+            // توليد بيانات الناس المشهورين
+            useEffect(() => {
+                if (birthDate) {
+                    generateFamousPeople();
+                }
+            }, [birthDate]);
+
+            // إنشاء الرسوم البيانية
+            useEffect(() => {
+                if (ageResults && activeTab === 'statistics') {
+                    createAgeChart();
+                    createTimeChart();
+                }
+                return () => {
+                    if (ageChartInstance.current) {
+                        ageChartInstance.current.destroy();
+                    }
+                    if (timeChartInstance.current) {
+                        timeChartInstance.current.destroy();
+                    }
+                }
+            }, [ageResults, activeTab]);
+
+            // إعادة تعيين حجم المخططات عند تغيير النافذة
+            useEffect(() => {
+                const handleResize = () => {
+                    if (ageChartInstance.current) {
+                        ageChartInstance.current.resize();
+                    }
+                    if (timeChartInstance.current) {
+                        timeChartInstance.current.resize();
+                    }
+                };
+
+                window.addEventListener('resize', handleResize);
+                return () => {
+                    window.removeEventListener('resize', handleResize);
+                };
+            }, []);
+
+            // حفظ البيانات في التخزين المحلي
+            useEffect(() => {
+                if (settings.autoSave && name && birthDate) {
+                    localStorage.setItem('ageCalcUserData', JSON.stringify({
+                        name,
+                        birthDate,
+                        birthTime,
+                        gender,
+                        calendarType
+                    }));
+                }
+            }, [name, birthDate, birthTime, gender, calendarType, settings.autoSave]);
+
+            // استرجاع البيانات من التخزين المحلي
+            useEffect(() => {
+                const savedData = localStorage.getItem('ageCalcUserData');
+                if (savedData) {
+                    try {
+                        const parsedData = JSON.parse(savedData);
+                        setName(parsedData.name || '');
+                        setBirthDate(parsedData.birthDate || '');
+                        setBirthTime(parsedData.birthTime || '');
+                        setGender(parsedData.gender || 'male');
+                        setCalendarType(parsedData.calendarType || 'gregorian');
+                        
+                        // إظهار إشعار
+                        addNotification({
+                            type: 'info',
+                            title: 'تم استرجاع البيانات',
+                            message: 'تم استرجاع البيانات المحفوظة مسبقاً'
+                        });
+                    } catch (e) {
+                        console.error('Error parsing saved data', e);
+                    }
+                }
+            }, []);
+
+            // حفظ الإعدادات
+            useEffect(() => {
+                localStorage.setItem('ageCalcSettings', JSON.stringify(settings));
+                
+                // تطبيق إعدادات السمة
+                if (settings.darkMode) {
+                    setTheme('dark');
+                } else {
+                    setTheme('light');
+                }
+                
+                // تطبيق إعدادات اللغة
+                setLanguage(settings.language);
+                
+                // تطبيق لون التصميم
+                switch (settings.colorTheme) {
+                    case 'blue':
+                        setAccentColor('#4a6fa5');
+                        document.documentElement.style.setProperty('--primary-color', '#4a6fa5');
+                        document.documentElement.style.setProperty('--gradient-primary', 'linear-gradient(135deg, #4a6fa5, #334a6d)');
+                        break;
+                    case 'green':
+                        setAccentColor('#2ecc71');
+                        document.documentElement.style.setProperty('--primary-color', '#2ecc71');
+                        document.documentElement.style.setProperty('--gradient-primary', 'linear-gradient(135deg, #2ecc71, #27ae60)');
+                        break;
+                    case 'purple':
+                        setAccentColor('#9b59b6');
+                        document.documentElement.style.setProperty('--primary-color', '#9b59b6');
+                        document.documentElement.style.setProperty('--gradient-primary', 'linear-gradient(135deg, #9b59b6, #8e44ad)');
+                        break;
+                    case 'red':
+                        setAccentColor('#e74c3c');
+                        document.documentElement.style.setProperty('--primary-color', '#e74c3c');
+                        document.documentElement.style.setProperty('--gradient-primary', 'linear-gradient(135deg, #e74c3c, #c0392b)');
+                        break;
+                    case 'orange':
+                        setAccentColor('#e67e22');
+                        document.documentElement.style.setProperty('--primary-color', '#e67e22');
+                        document.documentElement.style.setProperty('--gradient-primary', 'linear-gradient(135deg, #e67e22, #d35400)');
+                        break;
+                }
+            }, [settings]);
+
+            // استرجاع الإعدادات
+            useEffect(() => {
+                const savedSettings = localStorage.getItem('ageCalcSettings');
+                if (savedSettings) {
+                    try {
+                        const parsedSettings = JSON.parse(savedSettings);
+                        setSettings(prevSettings => ({
+                            ...prevSettings,
+                            ...parsedSettings
+                        }));
+                    } catch (e) {
+                        console.error('Error parsing saved settings', e);
+                    }
+                }
+            }, []);
+
+            // إضافة إشعار جديد
+            const addNotification = (notification) => {
+                if (!settings.notifications) return;
+                
+                const id = Date.now();
+                setNotifications(prev => [...prev, { id, ...notification }]);
+                
+                // إزالة الإشعار بعد 5 ثوانٍ
+                setTimeout(() => {
+                    removeNotification(id);
+                }, 5000);
+            };
+
+            // إزالة إشعار
+            const removeNotification = (id) => {
+                setNotifications(prev => prev.filter(notification => notification.id !== id));
+            };
+
+            // حساب العمر
+            const calculateAge = () => {
+                if (!birthDate) {
+                    addNotification({
+                        type: 'warning',
+                        title: 'خطأ في البيانات',
+                        message: 'يرجى إدخال تاريخ الميلاد'
+                    });
+                    return;
+                }
+
+                setLoading(true);
+                
+                // محاكاة التحميل للحصول على تجربة مستخدم أفضل
+                setTimeout(() => {
+                    try {
+                        const now = moment();
+                        let birth;
+                        
+                        if (calendarType === 'hijri') {
+                            // تحويل التاريخ الهجري إلى ميلادي
+                            birth = moment.hijri(birthDate).format('YYYY-MM-DD');
+                            birth = moment(birth);
+                        } else {
+                            birth = moment(birthDate);
+                        }
+                        
+                        if (birthTime) {
+                            const [hours, minutes] = birthTime.split(':');
+                            birth.hours(hours).minutes(minutes);
+                        } else {
+                            birth.hours(0).minutes(0).seconds(0);
+                        }
+
+                        if (!birth.isValid()) {
+                            throw new Error('تاريخ غير صحيح');
+                        }
+
+                        // حساب الفرق بالسنوات
+                        const years = now.diff(birth, 'years');
+                        const months = now.diff(birth, 'months') % 12;
+                        const days = now.diff(birth.add(months, 'months'), 'days');
+                        
+                        // حساب العمر بوحدات مختلفة
+                        const totalMonths = now.diff(birth, 'months');
+                        const totalWeeks = now.diff(birth, 'weeks');
+                        const totalDays = now.diff(birth, 'days');
+                        const totalHours = now.diff(birth, 'hours');
+                        const totalMinutes = now.diff(birth, 'minutes');
+                        const totalSeconds = now.diff(birth, 'seconds');
+                        
+                        // حساب النسبة المئوية من القرن
+                        const centuryPercentage = (totalDays / 36525) * 100;
+                        
+                        // حساب الأحداث المهمة في الحياة
+                        const events = calculateLifeEvents(birth);
+                        
+                        // حساب البرج الفلكي
+                        const zodiac = calculateZodiacSign(birth);
+                        setZodiacSign(zodiac);
+                        
+                        const birthDay = birth.format('dddd');
+                        const nextBirthday = calculateNextBirthday(birth);
+                        
+                        setAgeResults({
+                            years,
+                            months,
+                            days,
+                            totalMonths,
+                            totalWeeks,
+                            totalDays,
+                            totalHours,
+                            totalMinutes,
+                            totalSeconds,
+                            birthDay,
+                            centuryPercentage,
+                            nextBirthday
+                        });
+                        
+                        setLifeEvents(events);
+                        
+                        addNotification({
+                            type: 'success',
+                            title: 'تم الحساب بنجاح',
+                            message: `عمرك هو ${years} سنة و ${months} شهر و ${days} يوم`
+                        });
+                        
+                        // تغيير التبويب إلى النتائج
+                        setActiveTab('results');
+                    } catch (error) {
+                        console.error('Error calculating age:', error);
+                        addNotification({
+                            type: 'warning',
+                            title: 'خطأ في الحساب',
+                            message: 'يرجى التأكد من صحة التاريخ المدخل'
+                        });
+                    } finally {
+                        setLoading(false);
+                    }
+                }, 1000);
+            };
+
+            // حساب البرج الفلكي
+            const calculateZodiacSign = (birthDate) => {
+                const day = birthDate.date();
+                const month = birthDate.month() + 1; // months are 0-indexed in moment.js
+                
+                if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) {
+                    return { name: 'الدلو', arabicName: 'الدلو', englishName: 'Aquarius', element: 'هوائي', traits: 'مبتكر، إنساني، مستقل، تقدمي' };
+                } else if ((month === 2 && day >= 19) || (month === 3 && day <= 20)) {
+                    return { name: 'الحوت', arabicName: 'الحوت', englishName: 'Pisces', element: 'مائي', traits: 'حالم، حساس، رحيم، فني' };
+                } else if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) {
+                    return { name: 'الحمل', arabicName: 'الحمل', englishName: 'Aries', element: 'ناري', traits: 'حيوي، مغامر، متحمس، مباشر' };
+                } else if ((month === 4 && day >= 20) || (month === 5 && day <= 20)) {
+                    return { name: 'الثور', arabicName: 'الثور', englishName: 'Taurus', element: 'ترابي', traits: 'موثوق، صبور، عملي، مخلص' };
+                } else if ((month === 5 && day >= 21) || (month === 6 && day <= 20)) {
+                    return { name: 'الجوزاء', arabicName: 'الجوزاء', englishName: 'Gemini', element: 'هوائي', traits: 'فضولي، متكيف، سريع التعلم، اجتماعي' };
+                } else if ((month === 6 && day >= 21) || (month === 7 && day <= 22)) {
+                    return { name: 'السرطان', arabicName: 'السرطان', englishName: 'Cancer', element: 'مائي', traits: 'عاطفي، حدسي، حامي، متعاطف' };
+                } else if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) {
+                    return { name: 'الأسد', arabicName: 'الأسد', englishName: 'Leo', element: 'ناري', traits: 'إبداعي، شغوف، كريم، دافئ، مرح' };
+                } else if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) {
+                    return { name: 'العذراء', arabicName: 'العذراء', englishName: 'Virgo', element: 'ترابي', traits: 'تحليلي، عملي، دقيق، منتبه للتفاصيل' };
+                } else if ((month === 9 && day >= 23) || (month === 10 && day <= 22)) {
+                    return { name: 'الميزان', arabicName: 'الميزان', englishName: 'Libra', element: 'هوائي', traits: 'دبلوماسي، عادل، اجتماعي، متعاون' };
+                } else if ((month === 10 && day >= 23) || (month === 11 && day <= 21)) {
+                    return { name: 'العقرب', arabicName: 'العقرب', englishName: 'Scorpio', element: 'مائي', traits: 'عاطفي، قوي الإرادة، غامض، غيور' };
+                } else if ((month === 11 && day >= 22) || (month === 12 && day <= 21)) {
+                    return { name: 'القوس', arabicName: 'القوس', englishName: 'Sagittarius', element: 'ناري', traits: 'متفائل، محب للحرية، فلسفي، صريح' };
+                } else {
+                    return { name: 'الجدي', arabicName: 'الجدي', englishName: 'Capricorn', element: 'ترابي', traits: 'منضبط، مسؤول، عملي، طموح' };
+                }
+            };
+
+            // حساب عيد الميلاد القادم
+            const calculateNextBirthday = (birth) => {
+                const now = moment();
+                const currentYear = now.year();
+                
+                // تعيين تاريخ الميلاد في السنة الحالية
+                let nextBirthday = moment(birth).year(currentYear);
+                
+                // إذا كان عيد الميلاد قد مر بالفعل هذا العام، أضف سنة
+                if (nextBirthday.isBefore(now)) {
+                    nextBirthday = moment(birth).year(currentYear + 1);
+                }
+                
+                const daysUntilBirthday = nextBirthday.diff(now, 'days');
+                return {
+                    date: nextBirthday.format('YYYY-MM-DD'),
+                    daysUntil: daysUntilBirthday,
+                    age: nextBirthday.diff(birth, 'years') // العمر الذي سيتم بلوغه
+                };
+            };
+
+            // حساب الأحداث المهمة في الحياة
+            const calculateLifeEvents = (birth) => {
+                const now = moment();
+                const events = [
+                    { name: 'الولادة', age: 0, date: birth.format('YYYY-MM-DD') },
+                    { name: 'بداية المشي', age: 1, date: moment(birth).add(1, 'years').format('YYYY-MM-DD') },
+                    { name: 'بداية الكلام', age: 2, date: moment(birth).add(2, 'years').format('YYYY-MM-DD') },
+                    { name: 'دخول الحضانة', age: 3, date: moment(birth).add(3, 'years').format('YYYY-MM-DD') },
+                    { name: 'دخول المدرسة', age: 6, date: moment(birth).add(6, 'years').format('YYYY-MM-DD') },
+                    { name: 'بداية المراهقة', age: 13, date: moment(birth).add(13, 'years').format('YYYY-MM-DD') },
+                    { name: 'نهاية المدرسة', age: 18, date: moment(birth).add(18, 'years').format('YYYY-MM-DD') },
+                    { name: 'سن البلوغ القانوني', age: 18, date: moment(birth).add(18, 'years').format('YYYY-MM-DD') },
+                    { name: 'التخرج من الجامعة (المتوسط)', age: 22, date: moment(birth).add(22, 'years').format('YYYY-MM-DD') },
+                    { name: 'الوظيفة الأولى (المتوسط)', age: 23, date: moment(birth).add(23, 'years').format('YYYY-MM-DD') },
+                    { name: 'الزواج (المتوسط)', age: 30, date: moment(birth).add(30, 'years').format('YYYY-MM-DD') },
+                    { name: 'الإنجاب (المتوسط)', age: 32, date: moment(birth).add(32, 'years').format('YYYY-MM-DD') },
+                    { name: 'منتصف العمر', age: 40, date: moment(birth).add(40, 'years').format('YYYY-MM-DD') },
+                    { name: 'سن التقاعد (المتوسط)', age: 65, date: moment(birth).add(65, 'years').format('YYYY-MM-DD') },
+                    { name: 'متوسط العمر المتوقع', age: 80, date: moment(birth).add(80, 'years').format('YYYY-MM-DD') }
+                ];
+                
+                // إضافة معلومات إضافية
+                return events.map(event => {
+                    const eventDate = moment(event.date);
+                    const isPast = eventDate.isBefore(now);
+                    const daysRemaining = isPast ? 0 : eventDate.diff(now, 'days');
+                    return {
+                        ...event,
+                        isPast,
+                        daysRemaining
+                    };
+                });
+            };
+
+            // توليد قائمة بالأشخاص المشهورين
+            const generateFamousPeople = () => {
+                const famousList = [
+                    { name: 'ألبرت آينشتاين', birth: '1879-03-14', profession: 'عالم فيزياء' },
+                    { name: 'ستيف جوبز', birth: '1955-02-24', profession: 'رائد أعمال تقني' },
+                    { name: 'ماري كوري', birth: '1867-11-07', profession: 'عالمة فيزياء وكيمياء' },
+                    { name: 'نيلسون مانديلا', birth: '1918-07-18', profession: 'زعيم سياسي' },
+                    { name: 'مالالا يوسفزاي', birth: '1997-07-12', profession: 'ناشطة تعليمية' },
+                    { name: 'محمد علي كلاي', birth: '1942-01-17', profession: 'ملاكم عالمي' },
+                    { name: 'أم كلثوم', birth: '1904-12-31', profession: 'مغنية' },
+                    { name: 'نجيب محفوظ', birth: '1911-12-11', profession: 'كاتب وأديب' },
+                    { name: 'فيروز', birth: '1935-11-21', profession: 'مغنية' },
+                    { name: 'عبد الحليم حافظ', birth: '1929-06-21', profession: 'مغني' }
+                ];
+                
+                // اختيار 3 أشخاص عشوائيين
+                const shuffled = [...famousList].sort(() => 0.5 - Math.random());
+                const selected = shuffled.slice(0, 3);
+                
+                // حساب العمر لكل شخص
+                const withAges = selected.map(person => {
+                    const birthDate = moment(person.birth);
+                    const age = moment().diff(birthDate, 'years');
+                    const initials = person.name.split(' ').map(n => n[0]).join('');
+                    return {
+                        ...person,
+                        age,
+                        initials
+                    };
+                });
+                
+                setFamousPeople(withAges);
+            };
+
+            // إنشاء مخطط بياني للعمر
+            const createAgeChart = () => {
+                if (!ageResults || !ageChartRef.current) return;
+                
+                if (ageChartInstance.current) {
+                    ageChartInstance.current.destroy();
+                }
+                
+                const ctx = ageChartRef.current.getContext('2d');
+                ageChartInstance.current = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['سنوات', 'أشهر', 'أسابيع', 'أيام', 'ساعات'],
+                        datasets: [{
+                            label: 'العمر بوحدات مختلفة',
+                            data: [
+                                ageResults.years, 
+                                ageResults.totalMonths,
+                                ageResults.totalWeeks,
+                                ageResults.totalDays,
+                                ageResults.totalHours
+                            ],
+                            backgroundColor: [
+                                'rgba(74, 111, 165, 0.7)',
+                                'rgba(255, 107, 107, 0.7)',
+                                'rgba(255, 209, 102, 0.7)',
+                                'rgba(6, 214, 160, 0.7)',
+                                'rgba(52, 152, 219, 0.7)'
+                            ],
+                            borderColor: [
+                                'rgba(74, 111, 165, 1)',
+                                'rgba(255, 107, 107, 1)',
+                                'rgba(255, 209, 102, 1)',
+                                'rgba(6, 214, 160, 1)',
+                                'rgba(52, 152, 219, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                                },
+                                ticks: {
+                                    color: theme === 'dark' ? '#e2e8f0' : '#2c3e50'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    color: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                                },
+                                ticks: {
+                                    color: theme === 'dark' ? '#e2e8f0' : '#2c3e50'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: theme === 'dark' ? '#e2e8f0' : '#2c3e50'
+                                }
+                            }
+                        }
+                    }
+                });
+            };
+
+            // إنشاء مخطط بياني للوقت المنقضي
+            const createTimeChart = () => {
+                if (!ageResults || !timeChartRef.current) return;
+                
+                if (timeChartInstance.current) {
+                    timeChartInstance.current.destroy();
+                }
+                
+                const ctx = timeChartRef.current.getContext('2d');
+                timeChartInstance.current = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['العمر المنقضي', 'المتبقي حتى 100 سنة'],
+                        datasets: [{
+                            data: [ageResults.years, 100 - ageResults.years],
+                            backgroundColor: [
+                                'rgba(74, 111, 165, 0.7)',
+                                'rgba(224, 224, 224, 0.7)'
+                            ],
+                            borderColor: [
+                                'rgba(74, 111, 165, 1)',
+                                'rgba(224, 224, 224, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: theme === 'dark' ? '#e2e8f0' : '#2c3e50'
+                                }
+                            }
+                        }
+                    }
+                });
+            };
+
+            // مقارنة العمر مع شخص آخر
+            const compareAges = () => {
+                if (!birthDate || !compareBirthDate) {
+                    addNotification({
+                        type: 'warning',
+                        title: 'بيانات ناقصة',
+                        message: 'يرجى إدخال تاريخ ميلادك وتاريخ ميلاد الشخص الآخر'
+                    });
+                    return;
+                }
+
+                try {
+                    const now = moment();
+                    const birth1 = moment(birthDate);
+                    const birth2 = moment(compareBirthDate);
+                    
+                    if (!birth1.isValid() || !birth2.isValid()) {
+                        throw new Error('تاريخ غير صحيح');
+                    }
+                    
+                    // الفرق بالأيام
+                    const diffDays = Math.abs(birth1.diff(birth2, 'days'));
+                    
+                    // الفرق بالسنوات والأشهر والأيام
+                    let older, younger;
+                    if (birth1.isBefore(birth2)) {
+                        older = birth1;
+                        younger = birth2;
+                    } else {
+                        older = birth2;
+                        younger = birth1;
+                    }
+                    
+                    const diffYears = younger.diff(older, 'years');
+                    younger.subtract(diffYears, 'years');
+                    const diffMonths = younger.diff(older, 'months');
+                    younger.subtract(diffMonths, 'months');
+                    const remainingDays = younger.diff(older, 'days');
+                    
+                    // من هو الأكبر؟
+                    const olderPerson = birth1.isBefore(birth2) ? 'أنت' : 'الشخص الآخر';
+                    
+                    // النسبة المئوية للفرق
+                    const age1InDays = now.diff(birth1, 'days');
+                    const age2InDays = now.diff(birth2, 'days');
+                    const ageDifferencePercentage = Math.abs((age1InDays - age2InDays) / Math.max(age1InDays, age2InDays) * 100).toFixed(2);
+                    
+                    setCompareResults({
+                        diffDays,
+                        diffYears,
+                        diffMonths,
+                        remainingDays,
+                        olderPerson,
+                        ageDifferencePercentage,
+                        person1Age: now.diff(birth1, 'years'),
+                        person2Age: now.diff(birth2, 'years')
+                    });
+                    
+                    addNotification({
+                        type: 'success',
+                        title: 'تمت المقارنة',
+                        message: `الفرق بين العمرين هو ${diffYears} سنة و ${diffMonths} شهر و ${remainingDays} يوم`
+                    });
+                } catch (error) {
+                    console.error('Error comparing ages:', error);
+                    addNotification({
+                        type: 'warning',
+                        title: 'خطأ في المقارنة',
+                        message: 'يرجى التأكد من صحة التواريخ المدخلة'
+                    });
+                }
+            };
+
+            // طباعة النتائج
+            const printResults = () => {
+                window.print();
+                
+                addNotification({
+                    type: 'info',
+                    title: 'طباعة',
+                    message: 'تم إرسال صفحة النتائج للطباعة'
+                });
+            };
+
+            // مشاركة النتائج
+            const shareResults = (platform) => {
+                if (!ageResults) return;
+                
+                const shareText = `عمري هو ${ageResults.years} سنة و ${ageResults.months} شهر و ${ageResults.days} يوم - تم الحساب باستخدام حاسبة العمر الاحترافية`;
+                
+                let shareUrl;
+                switch (platform) {
+                    case 'facebook':
+                        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}&quote=${encodeURIComponent(shareText)}`;
+                        break;
+                    case 'twitter':
+                        shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(window.location.href)}`;
+                        break;
+                    case 'whatsapp':
+                        shareUrl = `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + window.location.href)}`;
+                        break;
+                    default:
+                        return;
+                }
+                
+                window.open(shareUrl, '_blank');
+                
+                addNotification({
+                    type: 'info',
+                    title: 'مشاركة',
+                    message: `تمت المشاركة على ${platform}`
+                });
+            };
+
+            // تحديث الإعدادات
+            const updateSettings = (key, value) => {
+                setSettings(prev => ({
+                    ...prev,
+                    [key]: value
+                }));
+                
+                addNotification({
+                    type: 'success',
+                    title: 'تم تحديث الإعدادات',
+                    message: 'تم حفظ الإعدادات الجديدة'
+                });
+            };
+
+            // التبديل بين التقويم الميلادي والهجري
+            const toggleCalendar = (type) => {
+                setCalendarType(type);
+                setBirthDate(''); // إعادة تعيين تاريخ الميلاد عند تغيير نوع التقويم
+            };
+
+            // ميزة جديدة: تقديم معلومات ممتعة حول تاريخ الميلاد
+            const getFunFacts = () => {
+                if (!birthDate) return [];
+                
+                const birth = moment(birthDate);
+                const now = moment();
+                
+                // عدد الأيام منذ الميلاد
+                const daysSinceBirth = now.diff(birth, 'days');
+                
+                // عدد مرات دوران الأرض حول نفسها
+                const earthRotations = daysSinceBirth;
+                
+                // عدد مرات دوران الأرض حول الشمس (تقريبًا)
+                const earthRevolutions = daysSinceBirth / 365.25;
+                
+                // عدد نبضات القلب (تقريبًا، 70 نبضة في الدقيقة)
+                const heartbeats = daysSinceBirth * 24 * 60 * 70;
+                
+                // عدد الأنفاس (تقريبًا، 12 نفس في الدقيقة)
+                const breaths = daysSinceBirth * 24 * 60 * 12;
+                
+                // يوم الأسبوع عند الولادة
+                const birthDayOfWeek = birth.format('dddd');
+                
+                return [
+                    {
+                        title: 'دوران الأرض',
+                        fact: `منذ ولادتك، دارت الأرض حول نفسها ${earthRotations.toLocaleString()} مرة`
+                    },
+                    {
+                        title: 'دوران حول الشمس',
+                        fact: `أكملت الأرض حوالي ${Math.floor(earthRevolutions).toLocaleString()} دورة حول الشمس منذ ولادتك`
+                    },
+                    {
+                        title: 'نبضات القلب',
+                        fact: `نبض قلبك حوالي ${Math.floor(heartbeats).toLocaleString()} مرة منذ ولادتك`
+                    },
+                    {
+                        title: 'الأنفاس',
+                        fact: `تنفست حوالي ${Math.floor(breaths).toLocaleString()} مرة منذ ولادتك`
+                    },
+                    {
+                        title: 'يوم ميلادك',
+                        fact: `ولدت في يوم ${birthDayOfWeek}`
+                    }
+                ];
+            };
+
+            // رندر التطبيق
+            return (
+                <div className="app-container">
+                    {/* الإشعارات */}
+                    <div className="notifications">
+                        {notifications.map(notification => (
+                            <div key={notification.id} className={`notification ${notification.type}`}>
+                                <div className="notification-icon">
+                                    {notification.type === 'success' && '✓'}
+                                    {notification.type === 'warning' && '!'}
+                                    {notification.type === 'info' && 'i'}
+                                </div>
+                                <div className="notification-content">
+                                    <h4>{notification.title}</h4>
+                                    <p>{notification.message}</p>
+                                </div>
+                                <button className="close-notification" onClick={() => removeNotification(notification.id)}>×</button>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* رأس الصفحة */}
+                    <header className="header">
+                        <button 
+                            className="theme-switcher" 
+                            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+                        >
+                            {theme === 'light' ? '🌙 الوضع الليلي' : '☀️ الوضع النهاري'}
+                        </button>
+                        <h1>حاسبة العمر الاحترافية</h1>
+                        <p>احسب عمرك بدقة وتعرف على معلومات مفصلة وإحصائيات مثيرة للاهتمام</p>
+                    </header>
+
+                    {/* أزرار التبويب */}
+                    <div className="main-card">
+                        <nav className="tab-navigation">
+                            <button 
+                                className={`tab-button ${activeTab === 'calculator' ? 'active' : ''}`} 
+                                onClick={() => setActiveTab('calculator')}
+                            >
+                                حاسبة العمر
+                            </button>
+                            <button 
+                                className={`tab-button ${activeTab === 'results' ? 'active' : ''}`} 
+                                onClick={() => setActiveTab('results')}
+                                disabled={!ageResults}
+                            >
+                                النتائج
+                            </button>
+                            <button 
+                                className={`tab-button ${activeTab === 'statistics' ? 'active' : ''}`} 
+                                onClick={() => setActiveTab('statistics')}
+                                disabled={!ageResults}
+                            >
+                                الإحصائيات
+                            </button>
+                            <button 
+                                className={`tab-button ${activeTab === 'timeline' ? 'active' : ''}`} 
+                                onClick={() => setActiveTab('timeline')}
+                                disabled={!ageResults}
+                            >
+                                الخط الزمني
+                            </button>
+                            <button 
+                                className={`tab-button ${activeTab === 'comparison' ? 'active' : ''}`} 
+                                onClick={() => setActiveTab('comparison')}
+                            >
+                                المقارنة
+                            </button>
+                            <button 
+                                className={`tab-button ${activeTab === 'settings' ? 'active' : ''}`} 
+                                onClick={() => setActiveTab('settings')}
+                            >
+                                الإعدادات
+                            </button>
+                        </nav>
+
+                        {/* محتوى التبويب النشط */}
+                        <div className="tab-content">
+                            {/* تبويب حاسبة العمر */}
+                            {activeTab === 'calculator' && (
+                                <div>
+                                    {/* نموذج إدخال البيانات */}
+                                    <div className="birth-form">
+                                        {/* نوع التقويم */}
+                                        <div className="calendar-select">
+                                            <div 
+                                                className={`calendar-option ${calendarType === 'gregorian' ? 'active' : ''}`}
+                                                onClick={() => toggleCalendar('gregorian')}
+                                            >
+                                                التقويم الميلادي
+                                            </div>
+                                            <div 
+                                                className={`calendar-option ${calendarType === 'hijri' ? 'active' : ''}`}
+                                                onClick={() => toggleCalendar('hijri')}
+                                            >
+                                                التقويم الهجري
+                                            </div>
+                                        </div>
+
+                                        {/* الاسم */}
+                                        <div className="input-group">
+                                            <label htmlFor="name">الاسم (اختياري)</label>
+                                            <input 
+                                                type="text" 
+                                                id="name" 
+                                                value={name} 
+                                                onChange={(e) => setName(e.target.value)} 
+                                                placeholder="أدخل اسمك"
+                                            />
+                                        </div>
+
+                                        {/* الجنس */}
+                                        <div className="input-group">
+                                            <label htmlFor="gender">الجنس</label>
+                                            <select 
+                                                id="gender" 
+                                                value={gender} 
+                                                onChange={(e) => setGender(e.target.value)}
+                                            >
+                                                <option value="male">ذكر</option>
+                                                <option value="female">أنثى</option>
+                                            </select>
+                                        </div>
+
+                                        {/* تاريخ الميلاد */}
+                                        <div className="input-group">
+                                            <label htmlFor="birthDate">تاريخ الميلاد</label>
+                                            <input 
+                                                type="date" 
+                                                id="birthDate" 
+                                                value={birthDate} 
+                                                onChange={(e) => setBirthDate(e.target.value)} 
+                                            />
+                                        </div>
+
+                                        {/* وقت الميلاد */}
+                                        <div className="input-group">
+                                            <label htmlFor="birthTime">وقت الميلاد (اختياري)</label>
+                                            <input 
+                                                type="time" 
+                                                id="birthTime" 
+                                                value={birthTime} 
+                                                onChange={(e) => setBirthTime(e.target.value)} 
+                                            />
+                                        </div>
+
+                                        {/* أزرار التحكم */}
+                                        <div className="button-group">
+                                            <button 
+                                                className="btn btn-secondary" 
+                                                onClick={() => {
+                                                    setBirthDate('');
+                                                    setBirthTime('');
+                                                    setName('');
+                                                    setGender('male');
+                                                }}
+                                            >
+                                                إعادة تعيين
+                                            </button>
+                                            <button 
+                                                className="btn btn-primary" 
+                                                onClick={calculateAge}
+                                            >
+                                                احسب العمر
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* عرض التحميل */}
+                                    {loading && (
+                                        <div className="loader">
+                                            <div className="loader-spinner"></div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* تبويب النتائج */}
+                            {activeTab === 'results' && ageResults && (
+                                <div className="results-container">
+                                    {/* قسم الملف الشخصي */}
+                                    <div className="profile-section">
+                                        <div className="profile-avatar">
+                                            {name ? name.charAt(0).toUpperCase() : (gender === 'male' ? 'م' : 'ف')}
+                                        </div>
+                                        <div className="profile-info">
+                                            <h3>{name || (gender === 'male' ? 'مستخدم' : 'مستخدمة')}</h3>
+                                            <p>تاريخ الميلاد: {birthDate}</p>
+                                        </div>
+                                    </div>
+
+                                    {/* النتائج الرئيسية */}
+                                    <div className="results-card">
+                                        <h3>عمرك الحالي</h3>
+                                        <div className="results-grid">
+                                            <div className="result-item">
+                                                <div className="label">سنوات</div>
+                                                <div className="value">{ageResults.years} <span className="unit">سنة</span></div>
+                                            </div>
+                                            <div className="result-item">
+                                                <div className="label">أشهر</div>
+                                                <div className="value">{ageResults.months} <span className="unit">شهر</span></div>
+                                            </div>
+                                            <div className="result-item">
+                                                <div className="label">أيام</div>
+                                                <div className="value">{ageResults.days} <span className="unit">يوم</span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* عيد الميلاد القادم */}
+                                    <div className="results-card">
+                                        <h3>عيد الميلاد القادم</h3>
+                                        <div className="results-grid">
+                                            <div className="result-item">
+                                                <div className="label">التاريخ</div>
+                                                <div className="value">{ageResults.nextBirthday.date}</div>
+                                            </div>
+                                            <div className="result-item">
+                                                <div className="label">العد التنازلي</div>
+                                                <div className="value">{ageResults.nextBirthday.daysUntil} <span className="unit">يوم</span></div>
+                                            </div>
+                                            <div className="result-item">
+                                                <div className="label">ستكمل</div>
+                                                <div className="value">{ageResults.nextBirthday.age} <span className="unit">سنة</span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* العمر بوحدات مختلفة */}
+                                    <div className="results-card">
+                                        <h3>عمرك بوحدات مختلفة</h3>
+                                        <div className="results-grid">
+                                            <div className="result-item">
+                                                <div className="label">إجمالي الأشهر</div>
+                                                <div className="value">{ageResults.totalMonths.toLocaleString()} <span className="unit">شهر</span></div>
+                                            </div>
+                                            <div className="result-item">
+                                                <div className="label">إجمالي الأسابيع</div>
+                                                <div className="value">{ageResults.totalWeeks.toLocaleString()} <span className="unit">أسبوع</span></div>
+                                            </div>
+                                            <div className="result-item">
+                                                <div className="label">إجمالي الأيام</div>
+                                                <div className="value">{ageResults.totalDays.toLocaleString()} <span className="unit">يوم</span></div>
+                                            </div>
+                                            <div className="result-item">
+                                                <div className="label">إجمالي الساعات</div>
+                                                <div className="value">{ageResults.totalHours.toLocaleString()} <span className="unit">ساعة</span></div>
+                                            </div>
+                                            <div className="result-item">
+                                                <div className="label">إجمالي الدقائق</div>
+                                                <div className="value">{ageResults.totalMinutes.toLocaleString()} <span className="unit">دقيقة</span></div>
+                                            </div>
+                                            <div className="result-item">
+                                                <div className="label">إجمالي الثواني</div>
+                                                <div className="value">{ageResults.totalSeconds.toLocaleString()} <span className="unit">ثانية</span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* معلومات إضافية */}
+                                    <div className="results-card">
+                                        <h3>معلومات إضافية</h3>
+                                        <div className="results-grid">
+                                            <div className="result-item">
+                                                <div className="label">يوم الميلاد</div>
+                                                <div className="value">{ageResults.birthDay}</div>
+                                            </div>
+                                            <div className="result-item">
+                                                <div className="label">نسبة العمر من قرن</div>
+                                                <div className="value">{ageResults.centuryPercentage.toFixed(2)}%</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* معلومات البرج */}
+                                    {zodiacSign && (
+                                        <div className="results-card">
+                                            <h3>برجك الفلكي</h3>
+                                            <div className="zodiac-info">
+                                                <div className="zodiac-icon">♈</div>
+                                                <div className="zodiac-details">
+                                                    <h4>{zodiacSign.name} ({zodiacSign.englishName})</h4>
+                                                    <p>العنصر: {zodiacSign.element}</p>
+                                                    <p>الصفات: {zodiacSign.traits}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* حقائق ممتعة */}
+                                    <div className="results-card">
+                                        <h3>حقائق ممتعة عن عمرك</h3>
+                                        <div className="fun-facts">
+                                            {getFunFacts().map((fact, index) => (
+                                                <div key={index} className="fun-fact-card">
+                                                    <h4>{fact.title}</h4>
+                                                    <p>{fact.fact}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* المشاهير الذين لديهم عمر مشابه */}
+                                    <div className="results-card">
+                                        <h3>مشاهير في مثل عمرك تقريباً</h3>
+                                        <div className="famous-people">
+                                            {famousPeople.map((person, index) => (
+                                                <div key={index} className="person-card">
+                                                    <div className="person-avatar">{person.initials}</div>
+                                                    <div className="person-info">
+                                                        <h4>{person.name}</h4>
+                                                        <p>{person.profession} - العمر: {person.age} سنة</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* قسم الطباعة والمشاركة */}
+                                    <div className="print-section">
+                                        <button className="print-button" onClick={printResults}>
+                                            🖨️ طباعة النتائج
+                                        </button>
+                                        
+                                        {settings.shareFeature && (
+                                            <div className="share-section">
+                                                <h4>مشاركة النتائج</h4>
+                                                <div className="share-buttons">
+                                                    <div className="share-button share-facebook" onClick={() => shareResults('facebook')}>f</div>
+                                                    <div className="share-button share-twitter" onClick={() => shareResults('twitter')}>t</div>
+                                                    <div className="share-button share-whatsapp" onClick={() => shareResults('whatsapp')}>w</div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* تبويب الإحصائيات */}
+                            {activeTab === 'statistics' && ageResults && (
+                                <div>
+                                    <div className="results-card">
+                                        <h3>إحصائيات العمر</h3>
+                                        <div className="chart-container">
+                                            <canvas ref={ageChartRef}></canvas>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="results-card">
+                                        <h3>نسبة العمر من 100 سنة</h3>
+                                        <div className="chart-container">
+                                            <canvas ref={timeChartRef}></canvas>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="results-card">
+                                        <h3>المعالم العمرية المهمة</h3>
+                                        <div className="milestones-grid">
+                                            {lifeEvents.map((event, index) => (
+                                                <div 
+                                                    key={index} 
+                                                    className={`milestone-card ${event.isPast ? 'past' : 'future'}`}
+                                                >
+                                                    <h4>{event.name}</h4>
+                                                    <div className="date">{event.date}</div>
+                                                    {event.isPast ? (
+                                                        <div className="countdown">مضى عليه {Math.floor((Date.now() - new Date(event.date)) / (1000 * 60 * 60 * 24))} يوم</div>
+                                                    ) : (
+                                                        <div className="countdown">متبقي {event.daysRemaining} يوم</div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* تبويب الخط الزمني */}
+                            {activeTab === 'timeline' && ageResults && (
+                                <div className="timeline" ref={timelineRef}>
+                                    {lifeEvents.map((event, index) => (
+                                        <div key={index} className="timeline-item">
+                                            <div className="timeline-content">
+                                                <h4>{event.name}</h4>
+                                                <div className="timeline-date">{event.date}</div>
+                                                <p>
+                                                    {event.isPast ? 
+                                                        `لقد مر ${Math.floor((Date.now() - new Date(event.date)) / (1000 * 60 * 60 * 24))} يوم منذ ذلك الحدث.` : 
+                                                        `متبقي ${event.daysRemaining} يوم حتى هذا الحدث.`
+                                                    }
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* تبويب المقارنة */}
+                            {activeTab === 'comparison' && (
+                                <div>
+                                    <div className="comparison-form">
+                                        <h3>مقارنة العمر مع شخص آخر</h3>
+                                        <div className="birth-form">
+                                            <div className="input-group">
+                                                <label htmlFor="myBirthDate">تاريخ ميلادك</label>
+                                                <input 
+                                                    type="date" 
+                                                    id="myBirthDate" 
+                                                    value={birthDate} 
+                                                    onChange={(e) => setBirthDate(e.target.value)} 
+                                                />
+                                            </div>
+                                            
+                                            <div className="input-group">
+                                                <label htmlFor="compareBirthDate">تاريخ ميلاد الشخص الآخر</label>
+                                                <input 
+                                                    type="date" 
+                                                    id="compareBirthDate" 
+                                                    value={compareBirthDate} 
+                                                    onChange={(e) => setCompareBirthDate(e.target.value)} 
+                                                />
+                                            </div>
+                                            
+                                            <div className="button-group">
+                                                <button className="btn btn-primary" onClick={compareAges}>
+                                                    قارن العمرين
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    {compareResults && (
+                                        <div className="comparison-results">
+                                            <div className="comparison-column">
+                                                <h4>نتائج المقارنة</h4>
+                                                <div className="results-grid">
+                                                    <div className="result-item">
+                                                        <div className="label">الفرق بالأيام</div>
+                                                        <div className="value">{compareResults.diffDays.toLocaleString()} <span className="unit">يوم</span></div>
+                                                    </div>
+                                                    <div className="result-item">
+                                                        <div className="label">الفرق بالسنوات والأشهر</div>
+                                                        <div className="value">
+                                                            {compareResults.diffYears} <span className="unit">سنة</span> و {compareResults.diffMonths} <span className="unit">شهر</span> و {compareResults.remainingDays} <span className="unit">يوم</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="result-item">
+                                                        <div className="label">الأكبر سناً</div>
+                                                        <div className="value">{compareResults.olderPerson}</div>
+                                                    </div>
+                                                    <div className="result-item">
+                                                        <div className="label">نسبة الفرق في العمر</div>
+                                                        <div className="value">{compareResults.ageDifferencePercentage}%</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="comparison-column">
+                                                <h4>تفاصيل العمرين</h4>
+                                                <div className="results-grid">
+                                                    <div className="result-item">
+                                                        <div className="label">عمرك</div>
+                                                        <div className="value">{compareResults.person1Age} <span className="unit">سنة</span></div>
+                                                    </div>
+                                                    <div className="result-item">
+                                                        <div className="label">عمر الشخص الآخر</div>
+                                                        <div className="value">{compareResults.person2Age} <span className="unit">سنة</span></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* تبويب الإعدادات */}
+                            {activeTab === 'settings' && (
+                                <div className="settings-section">
+                                    <div className="settings-card">
+                                        <h3>الإعدادات العامة</h3>
+                                        
+                                        <div className="settings-group">
+                                            <h4>الوضع المظلم</h4>
+                                            <label className="toggle-switch">
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={settings.darkMode} 
+                                                    onChange={() => updateSettings('darkMode', !settings.darkMode)} 
+                                                />
+                                                <span className="slider"></span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div className="settings-group">
+                                            <h4>الإشعارات</h4>
+                                            <label className="toggle-switch">
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={settings.notifications} 
+                                                    onChange={() => updateSettings('notifications', !settings.notifications)} 
+                                                />
+                                                <span className="slider"></span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div className="settings-group">
+                                            <h4>حفظ البيانات تلقائياً</h4>
+                                            <label className="toggle-switch">
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={settings.autoSave} 
+                                                    onChange={() => updateSettings('autoSave', !settings.autoSave)} 
+                                                />
+                                                <span className="slider"></span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div className="settings-group">
+                                            <h4>تذكير بأعياد الميلاد</h4>
+                                            <label className="toggle-switch">
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={settings.birthdayReminder} 
+                                                    onChange={() => updateSettings('birthdayReminder', !settings.birthdayReminder)} 
+                                                />
+                                                <span className="slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="settings-card">
+                                        <h3>تخصيص المظهر</h3>
+                                        
+                                        <div className="settings-group">
+                                            <h4>اللون الرئيسي</h4>
+                                            <div className="color-options">
+                                                <div 
+                                                    className={`color-option ${settings.colorTheme === 'blue' ? 'active' : ''}`} 
+                                                    style={{ backgroundColor: '#4a6fa5' }}
+                                                    onClick={() => updateSettings('colorTheme', 'blue')}
+                                                ></div>
+                                                <div 
+                                                    className={`color-option ${settings.colorTheme === 'green' ? 'active' : ''}`} 
+                                                    style={{ backgroundColor: '#2ecc71' }}
+                                                    onClick={() => updateSettings('colorTheme', 'green')}
+                                                ></div>
+                                                <div 
+                                                    className={`color-option ${settings.colorTheme === 'purple' ? 'active' : ''}`} 
+                                                    style={{ backgroundColor: '#9b59b6' }}
+                                                    onClick={() => updateSettings('colorTheme', 'purple')}
+                                                ></div>
+                                                <div 
+                                                    className={`color-option ${settings.colorTheme === 'red' ? 'active' : ''}`} 
+                                                    style={{ backgroundColor: '#e74c3c' }}
+                                                    onClick={() => updateSettings('colorTheme', 'red')}
+                                                ></div>
+                                                <div 
+                                                    className={`color-option ${settings.colorTheme === 'orange' ? 'active' : ''}`} 
+                                                    style={{ backgroundColor: '#e67e22' }}
+                                                    onClick={() => updateSettings('colorTheme', 'orange')}
+                                                ></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="settings-group">
+                                            <h4>اللغة</h4>
+                                            <div className="language-selector">
+                                                <div 
+                                                    className={`language-option ${settings.language === 'ar' ? 'active' : ''}`}
+                                                    onClick={() => updateSettings('language', 'ar')}
+                                                >
+                                                    العربية
+                                                </div>
+                                                <div 
+                                                    className={`language-option ${settings.language === 'en' ? 'active' : ''}`}
+                                                    onClick={() => updateSettings('language', 'en')}
+                                                >
+                                                    English
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="settings-group">
+                                            <h4>تنسيق التاريخ</h4>
+                                            <div className="language-selector">
+                                                <div 
+                                                    className={`language-option ${settings.dateFormat === 'DD/MM/YYYY' ? 'active' : ''}`}
+                                                    onClick={() => updateSettings('dateFormat', 'DD/MM/YYYY')}
+                                                >
+                                                    DD/MM/YYYY
+                                                </div>
+                                                <div 
+                                                    className={`language-option ${settings.dateFormat === 'MM/DD/YYYY' ? 'active' : ''}`}
+                                                    onClick={() => updateSettings('dateFormat', 'MM/DD/YYYY')}
+                                                >
+                                                    MM/DD/YYYY
+                                                </div>
+                                                <div 
+                                                    className={`language-option ${settings.dateFormat === 'YYYY-MM-DD' ? 'active' : ''}`}
+                                                    onClick={() => updateSettings('dateFormat', 'YYYY-MM-DD')}
+                                                >
+                                                    YYYY-MM-DD
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="settings-card">
+                                        <h3>الميزات</h3>
+                                        
+                                        <div className="settings-group">
+                                            <h4>ميزة المقارنة</h4>
+                                            <label className="toggle-switch">
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={settings.comparisonFeature} 
+                                                    onChange={() => updateSettings('comparisonFeature', !settings.comparisonFeature)} 
+                                                />
+                                                <span className="slider"></span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div className="settings-group">
+                                            <h4>ميزة الخط الزمني</h4>
+                                            <label className="toggle-switch">
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={settings.timelineFeature} 
+                                                    onChange={() => updateSettings('timelineFeature', !settings.timelineFeature)} 
+                                                />
+                                                <span className="slider"></span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div className="settings-group">
+                                            <h4>ميزة المشاركة</h4>
+                                            <label className="toggle-switch">
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={settings.shareFeature} 
+                                                    onChange={() => updateSettings('shareFeature', !settings.shareFeature)} 
+                                                />
+                                                <span className="slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* تذييل الصفحة */}
+                    <footer className="footer">
+                        <p>حاسبة العمر الاحترافية &copy; {new Date().getFullYear()} | جميع الحقوق محفوظة</p>
+                        <p>تم التطوير بكل <span className="heart-icon">❤</span></p>
+                    </footer>
+                </div>
+            );
+        };
+
+        // رندر التطبيق
+        ReactDOM.render(<AgeCalculator />, document.getElementById('root'));
+    </script>
+</body>
+</html>
